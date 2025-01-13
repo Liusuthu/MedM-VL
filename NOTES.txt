@@ -1,0 +1,155 @@
+$$ Background Knowledge $$
+
+MedM-VL 是一系列医疗大型视觉语言模型 （LVLM），可用于直接执行简单的一般医疗任务，或作为微调专业医疗 LVLM 的基础模型。
+我们可以借鉴其将LLM与CV/3D特征对齐的方式，来实现Pipeline改造。
+
+
+- Model Zoo
+    Encoder: CLIP / SigLIP / M3D-CLIP
+    Connector: MLP / Spatial Pooling
+    LLM: Phi-2&3 / Qwen2.5 / Llama3.2
+
+
+
+
+
+
+
+$$ File Structure $$
+
+./docs
+    /example_finetune.json              # data preview
+    /example_inference.json             # data preview
+    /example_pretrain.json              # data preview
+    /param_interpretation.md            # explain each paramater in the script
+
+
+
+
+./lvlm                                  # main utils of this repository (core codes)
+    /dataset
+        /template
+            __init__.py                 # define dic: TEMPlATE_FACTORY
+            base.py
+            formatter.py
+            llama_template.py           # prompt template for llama and llama3
+            phi_template.py             # prompt template for phi and phi3
+            pretrain_template.py        # prompt template for pretrain and pretrain_image3d
+            qwen_template.py            # prompt template for qwen2
+        dataset.py                      # used to create_data_module
+    /model
+        /connector
+            __init__.py                 # define dic: CONNECTOR_FACTORY
+            base.py                     # define class Connector
+            mlp.py                      # define mlp connector and load config
+            spatial_pooling.py          # define spatial_pooling connector and load config
+        /encoder
+            __init__.py                 # define dic: ENCODER_FACTORY
+            base.py                     # define class EncoderModel
+            clip.py                     # load clip model and config
+            m3dclip.py                  # load m3dclip model and config
+            siglip.py                   # load siglip model and config
+        /llm
+            __init__.py                 # define dic: LLM_FACTORY
+            llama.py                    # load model and config
+            phi.py                      # load model and config
+            qwen.py                     # load model and config
+        configuration_lvlm.py           # define class LVLMConfig
+        modeling_lvlm.py                # define lvlm arch and method
+
+    /utils
+        /training_recipe
+            __init__.py
+            base.py                     # define class BaseTrainingRecipe, used for train details
+        arguments.py                    # define class ModelArguments / DataArguments / TrainingArguments
+        constants.py                    # define some token id constants
+        trainer_lvlm.py                 # define class LVLMTrainer
+
+
+    inference.py                        # model inference program
+    train.py                            # model training program
+
+
+
+./scripts                               # .sh scripts used for eval and train
+    /eval                               # eval codes and scripts for different data tasks
+        /gqa
+        /m3d_bench
+        /mmbench
+        /mme
+        /mmmu
+        /mmvet
+        /pope
+        /sqa
+        /textvqa
+        /unimed
+        inference.sh                   # use MedM-VL-CT-3B-en to inference on m3d_cap.json data
+    /train
+        /MedM-VL-2D-3B-en               # Llama3.2-3B + siglip + mlp
+        /MedM-VL-CT-3B-en               # Llama3.2-3B + m3dclip + spatial_pooling
+        /MedM-VL-qwen2-m3dclip          # Qwen2.5-3B + m3dclip + spatial_pooling
+        /MedM-VL-qwen2-siglip           # Qwen2.5-3B + siglip + mlp
+        /TinyLLaVA-phi2-siglip          # Phi2 +siglip +mlp
+        /TinyLLaVA-phi2-siglip-lora     # Phi2 +siglip +mlp (lora finetune)
+        /utils                          # zero2&3.json for deepspeed
+        finetune.sh                    # lora-finetune for MedM-VL-CT-3B-en, a little different from one in ./MedM-VL-CT-3B-en
+
+
+
+$$ HyperParams $$
+
+LLM and Template
+    --llm_type
+        phi
+        phi3
+        llama3
+        qwen2
+    --llm_name_or_path
+        microsoft/phi-2
+        microsoft/Phi-3-mini-128k-instruct
+        meta-llama/Llama-3.2-3B-Instruct
+        Qwen/Qwen2.5-3B-Instruct
+    --llm_padding_side
+        right
+    --conv_version
+        phi
+        phi3
+        llama3
+        qwen2
+    --tune_type_llm
+        frozen
+        full
+        lora
+
+Encoder and Connector(image & image3d)
+    --encoder_image_name_or_path
+        openai/clip-vit-large-patch14-336
+        google/siglip-so400m-patch14-384
+    --encoder_image_type
+        clip
+        siglip
+    --tune_type_encoder_image
+        frozen
+        full
+    --connector_image_name
+        mlp2x_gelu
+    --connector_image_type
+        mlp
+    --tune_type_connector_image
+        frozen
+        full
+    --encoder_image3d_name_or_path
+        GoodBaiBai88/M3D-CLIP
+    --encoder_image3d_type
+        m3dclip
+    --tune_type_encoder_image3d
+        frozen
+        full
+    --connector_image3d_name
+        mlp2x_gelu
+    --connector_image3d_type
+        mlp2x_gelu
+        spatial_pooling
+    --tune_type_connector_image3d
+        frozen
+        full

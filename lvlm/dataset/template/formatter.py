@@ -1,11 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod  # Abstract Base Class，用于定义抽象基类
 from dataclasses import dataclass
 from typing import Dict, Union, List
 
 
-SLOT = Union[str, List[str], Dict[str, str]]
+SLOT = Union[str, List[str], Dict[str, str]] # 类型别名(插槽)，可以是字符串、字符串列表、字符串字典之一
+# 后续不同的template类定义中会传入不同的SLOT形式，以满足不同LLM的Prompt格式需求
 
-
+# 每个Formatter都有一个slot属性，用于存储格式化字符串(模板)
+# 每个Formatter的方法apply
 @dataclass
 class Formatter(ABC):
     slot: SLOT = ""
@@ -18,10 +20,12 @@ class Formatter(ABC):
 class EmptyFormatter(Formatter):
     def apply(self, **kwargs) -> SLOT:
         return self.slot
+    #EmptyFormatter的apply方法直接返回slot，在Template中定义为一个列表(seperator)或字符串(system)，
 
 
 @dataclass
 class StringFormatter(Formatter):
+    # apply方法接收一个字典kwargs，将其中的name替换为相应value
     def apply(self, **kwargs) -> SLOT:
         msg = ""
         for name, value in kwargs.items():

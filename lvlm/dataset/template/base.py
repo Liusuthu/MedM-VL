@@ -6,7 +6,7 @@ import torch
 
 from lvlm.dataset.template.formatter import Formatter
 from lvlm.utils.constants import (
-    IGNORE_INDEX,
+    IGNORE_INDEX, # -100
     DEFAULT_IMAGE_TOKEN,
     IMAGE_TOKEN_ID,
     DEFAULT_IMAGE3D_TOKEN,
@@ -14,8 +14,8 @@ from lvlm.utils.constants import (
 )
 
 special_token_dict = {
-    DEFAULT_IMAGE_TOKEN: IMAGE_TOKEN_ID,
-    DEFAULT_IMAGE3D_TOKEN: IMAGE3D_TOKEN_ID,
+    DEFAULT_IMAGE_TOKEN: IMAGE_TOKEN_ID,    # "<image>":-200
+    DEFAULT_IMAGE3D_TOKEN: IMAGE3D_TOKEN_ID, # "<image3d>":-201
 }
 
 
