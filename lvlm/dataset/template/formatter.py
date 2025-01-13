@@ -25,7 +25,7 @@ class EmptyFormatter(Formatter):
 
 @dataclass
 class StringFormatter(Formatter):
-    # apply方法接收一个字典kwargs，将其中的name替换为相应value
+    # apply方法接收一个字典kwargs，将其中的name(模板里定义的都是{{content}})替换为相应value
     def apply(self, **kwargs) -> SLOT:
         msg = ""
         for name, value in kwargs.items():
