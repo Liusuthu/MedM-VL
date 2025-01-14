@@ -22,6 +22,7 @@ class MultiModalDataset(Dataset):
         self.tokenizer = model.tokenizer
         self.template = TEMPlATE_FACTORY[data_arguments.conv_version]()
 
+        # 这块Processor要和振宇对接好
         if model.encoder_image is not None:
             self.preprocessor_image = model.encoder_image.processor
         else:
@@ -35,7 +36,7 @@ class MultiModalDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx): # 如果shuffle就是打乱的，否则就是按顺序的 # 具体的idx不用管，Trainer高度封装
         data_item = self.data[idx]
         data_dict = self.template.encode(
             messages=copy.deepcopy(data_item["conversations"]),
@@ -54,6 +55,7 @@ class MultiModalDataset(Dataset):
         #         v = v[:10]
         #     print(f"{k:16}", v)
 
+        # 向dict中添加image/image3d
         if "image" in data_item:  # for multi image
             data_dict["image"] = []
             for filename in data_item["image"]:
@@ -77,6 +79,8 @@ class MultiModalDataset(Dataset):
         return data_dict
 
 
+
+# Transformer中用到的读取数据部件
 class DataCollatorForMultiModalDataset:
     def __init__(self, tokenizer, mode):
         self.tokenizer = tokenizer
